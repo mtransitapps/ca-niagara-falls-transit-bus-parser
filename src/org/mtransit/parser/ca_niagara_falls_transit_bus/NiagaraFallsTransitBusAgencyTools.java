@@ -119,32 +119,32 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 			int rsn = Integer.parseInt(gRoute.getRouteShortName());
 			switch (rsn) {
 			// @formatter:off
-			case 101: return "FAB20A";
-			case 102: return "8677C3";
-			case 103: return "F680C6";
-			case 104: return "8CDAF8";
-			case 105: return "F6836C";
-			case 106: return "FFF533";
-			case 107: return "CB9F8A";
-			case 108: return "33B764";
-			case 109: return "B3DC18";
-			case 110: return "9BACDE";
-			case 111: return "F9A48D";
-			case 112: return "E2AEDC";
-			case 113: return "AF907B";
-			case 114: return "D47DC5";
+			case 101: return "F57215";
+			case 102: return "2E3192";
+			case 103: return "EC008C";
+			case 104: return "19B5F1";
+			case 105: return "ED1C24";
+			case 106: return "BAA202";
+			case 107: return "A05843";
+			case 108: return "008940";
+			case 109: return "66E530";
+			case 110: return "4372C2";
+			case 111: return "F24D3E";
+			case 112: return "9E50AE";
+			case 113: return "724A36";
+			case 114: return "B30E8E";
 			//
-			case 203: return "F680C6";
-			case 204: return "8CDAF8";
-			case 205: return "F6836C";
-			case 206: return "FFF533";
+			case 203: return "EC008C";
+			case 204: return "19B5F1";
+			case 205: return "ED1C24";
+			case 206: return "BAA202";
 			//
-			case 209: return "B3DC18";
-			case 210: return "9BACDE";
-			case 211: return "F9A48D";
+			case 209: return "66C530";
+			case 210: return "4372C2";
+			case 211: return "F24D3E";
 			//
-			case 213: return "AF907B";
-			case 214: return "D47DC5";
+			case 213: return "724A36";
+			case 214: return "B30E8E";
 			// @formatter:on
 			}
 			System.out.printf("\nUnexpected route color for %s!\n", gRoute);
