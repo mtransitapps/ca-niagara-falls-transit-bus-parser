@@ -78,6 +78,14 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public boolean excludeRoute(GRoute gRoute) {
+		if (gRoute.getRouteShortName().equals("22") //
+				|| gRoute.getRouteLongName().toLowerCase(Locale.ENGLISH).contains("erie")) {
+			return true;
+		}
+		if (gRoute.getRouteShortName().startsWith("WEGO") //
+				|| gRoute.getRouteLongName().startsWith("WEGO")) {
+			return true;
+		}
 		if (!gRoute.getAgencyId().contains(NIAGARA_FALLS_TRANSIT)) {
 			return true;
 		}
@@ -154,7 +162,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		return super.getRouteColor(gRoute);
 	}
 
-	private static final Pattern STARTS_WITH_ROUTE_RID = Pattern.compile("(^route [\\d]+)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern STARTS_WITH_ROUTE_RID = Pattern.compile("(^(rte|route) [\\d]+)", Pattern.CASE_INSENSITIVE);
 
 	private String cleanRouteLongName(String routeLongName) {
 		routeLongName = STARTS_WITH_ROUTE_RID.matcher(routeLongName).replaceAll(StringUtils.EMPTY);
@@ -233,8 +241,8 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		return super.splitTripStop(mRoute, gTrip, gTripStop, splitTrips, routeGTFS);
 	}
 
-	public static final Pattern STARTS_WITH_NF_A00_ = Pattern
-			.compile("((^){1}(nf\\_[A-Z]{1}[\\d]{2}(\\_)?([A-Z]{3}(stop))?(stop)?))", Pattern.CASE_INSENSITIVE);
+	public static final Pattern STARTS_WITH_NF_A00_ = Pattern.compile("((^){1}(nf\\_[A-Z]{1}[\\d]{2}(\\_)?([A-Z]{3}(stop))?(stop|sto)?))",
+			Pattern.CASE_INSENSITIVE);
 
 	@Override
 	public String cleanStopOriginalId(String gStopId) {
@@ -252,6 +260,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 
 	private static final Pattern STARTS_WITH_RSN_ = Pattern.compile("(^[\\d]+( )?)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern STARTS_WITH_RLN_DASH = Pattern.compile("(^[^\\-]+\\-)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern STARTS_WITH_RLN_SLASH = Pattern.compile("(^[^\\/]+\\/)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern STARTS_WITH_TO = Pattern.compile("(^(.* )?to )", Pattern.CASE_INSENSITIVE);
 
 	private static final Pattern AND_NO_SPACE = Pattern.compile("(([\\S])(\\&)([\\S]))", Pattern.CASE_INSENSITIVE);
@@ -261,6 +270,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 	public String cleanTripHeadsign(String tripHeadsign) {
 		tripHeadsign = STARTS_WITH_RSN_.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
 		tripHeadsign = STARTS_WITH_RLN_DASH.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+		tripHeadsign = STARTS_WITH_RLN_SLASH.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
 		tripHeadsign = STARTS_WITH_TO.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
 		tripHeadsign = AND_NO_SPACE.matcher(tripHeadsign).replaceAll(AND_NO_SPACE_REPLACEMENT);
 		tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
@@ -273,10 +283,64 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 	@Override
 	public boolean mergeHeadsign(MTrip mTrip, MTrip mTripToMerge) {
 		List<String> headsignsValues = Arrays.asList(mTrip.getHeadsignValue(), mTripToMerge.getHeadsignValue());
-		if (mTrip.getRouteId() == 106L) {
+		if (mTrip.getRouteId() == 104L) {
+			if (Arrays.asList( //
+					"Bus Terminal", // <>
+					"Main & Ferry" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Main & Ferry", mTrip.getHeadsignId());
+				return true;
+			}
+		} else if (mTrip.getRouteId() == 106L) {
 			if (Arrays.asList( //
 					"Inb1", //
 					"Main & Ferry" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Main & Ferry", mTrip.getHeadsignId());
+				return true;
+			}
+			if (Arrays.asList( //
+					"Aillanthus Ave", //
+					"Main & Ferr" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Main & Ferr", mTrip.getHeadsignId());
+				return true;
+			}
+		} else if (mTrip.getRouteId() == 108L) {
+			if (Arrays.asList( //
+					"Bus Term", //
+					"Bus Terminal" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Bus Terminal", mTrip.getHeadsignId());
+				return true;
+			}
+		} else if (mTrip.getRouteId() == 112L) {
+			if (Arrays.asList( //
+					"McLeod Rd.", //
+					"Niagara Sqaure" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Niagara Sqaure", mTrip.getHeadsignId());
+				return true;
+			}
+		} else if (mTrip.getRouteId() == 113L) {
+			if (Arrays.asList( //
+					"Brown Rd. Loop", //
+					"Niagara Squar" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Niagara Squar", mTrip.getHeadsignId());
+				return true;
+			}
+		} else if (mTrip.getRouteId() == 206L) {
+			if (Arrays.asList( //
+					"Main & Ferry", // <> #204
+					"Chippawa" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Chippawa", mTrip.getHeadsignId());
+				return true;
+			}
+			if (Arrays.asList( //
+					"Bus Terminal", //
+					"Main & Ferry" // <>
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Main & Ferry", mTrip.getHeadsignId());
 				return true;
@@ -321,6 +385,18 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		Matcher matcher = DIGITS.matcher(stopCode);
 		if (matcher.find()) {
 			digits = Integer.parseInt(matcher.group());
+		} else {
+			if (stopCode.equals("Por&Burn")) {
+				return 1_000_001;
+			} else if (stopCode.equals("Por&Mlnd")) {
+				return 1_000_002;
+			} else if (stopCode.equals("Temp")) {
+				return 6_200_000;
+			} else {
+				System.out.printf("\nStop doesn't have an ID! %s\n", gStop);
+				System.exit(-1);
+				return -1;
+			}
 		}
 		int stopId;
 		String stopCodeLC = stopCode.toLowerCase(Locale.ENGLISH);
@@ -336,8 +412,6 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 			stopId = 5_100_000;
 		} else if (stopCodeLC.endsWith("temp10")) {
 			stopId = 6_100_000;
-		} else if (stopCodeLC.endsWith("temp")) {
-			stopId = 6_200_000;
 		} else {
 			System.out.printf("\nStop doesn't have an ID (ends with)! %s\n", gStop);
 			System.exit(-1);
