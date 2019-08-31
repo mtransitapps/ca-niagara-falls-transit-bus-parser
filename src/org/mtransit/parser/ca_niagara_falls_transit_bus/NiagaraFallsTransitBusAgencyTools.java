@@ -82,8 +82,11 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 				|| gRoute.getRouteLongName().toLowerCase(Locale.ENGLISH).contains("erie")) {
 			return true;
 		}
-		if (gRoute.getRouteShortName().startsWith("WEGO") //
-				|| gRoute.getRouteLongName().startsWith("WEGO")) {
+		if (gRoute.getRouteShortName().contains("WEGO") //
+				|| gRoute.getRouteLongName().contains("WEGO")) {
+			return true;
+		}
+		if (gRoute.getRouteLongName().equals("604 - Orange - NOTL")) {
 			return true;
 		}
 		if (!gRoute.getAgencyId().contains(NIAGARA_FALLS_TRANSIT)) {
@@ -168,6 +171,8 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		routeLongName = STARTS_WITH_ROUTE_RID.matcher(routeLongName).replaceAll(StringUtils.EMPTY);
 		return routeLongName;
 	}
+
+	private static final String SQUARE = "Square";
 
 	@Override
 	public String getRouteLongName(GRoute gRoute) {
@@ -261,17 +266,20 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 	private static final Pattern STARTS_WITH_RSN_ = Pattern.compile("(^[\\d]+( )?)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern STARTS_WITH_RLN_DASH = Pattern.compile("(^[^\\-]+\\-)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern STARTS_WITH_RLN_SLASH = Pattern.compile("(^[^\\/]+\\/)", Pattern.CASE_INSENSITIVE);
-	private static final Pattern STARTS_WITH_TO = Pattern.compile("(^(.* )?to )", Pattern.CASE_INSENSITIVE);
 
 	private static final Pattern AND_NO_SPACE = Pattern.compile("(([\\S])(\\&)([\\S]))", Pattern.CASE_INSENSITIVE);
-	private static final String AND_NO_SPACE_REPLACEMENT = "$2 & $4";
+	private static final String AND_NO_SPACE_REPLACEMENT = "$2" + "&" + "$4";
+
+	private static final Pattern SQUARE_ = Pattern.compile("((^|\\W){1}(sqaure)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String SQUARE_REPLACEMENT = "$2" + SQUARE + "$4";
 
 	@Override
 	public String cleanTripHeadsign(String tripHeadsign) {
 		tripHeadsign = STARTS_WITH_RSN_.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
 		tripHeadsign = STARTS_WITH_RLN_DASH.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
 		tripHeadsign = STARTS_WITH_RLN_SLASH.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
-		tripHeadsign = STARTS_WITH_TO.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+		tripHeadsign = SQUARE_.matcher(tripHeadsign).replaceAll(SQUARE_REPLACEMENT);
+		tripHeadsign = CleanUtils.keepToAndRevoveVia(tripHeadsign);
 		tripHeadsign = AND_NO_SPACE.matcher(tripHeadsign).replaceAll(AND_NO_SPACE_REPLACEMENT);
 		tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
 		tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign); // 1st
@@ -283,12 +291,27 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 	@Override
 	public boolean mergeHeadsign(MTrip mTrip, MTrip mTripToMerge) {
 		List<String> headsignsValues = Arrays.asList(mTrip.getHeadsignValue(), mTripToMerge.getHeadsignValue());
-		if (mTrip.getRouteId() == 104L) {
+		if (mTrip.getRouteId() == 102L) {
+			if (Arrays.asList( //
+					"NF Bus Terminal", //
+					"Main & Ferry Hub" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Main & Ferry Hub", mTrip.getHeadsignId());
+				return true;
+			}
+		} else if (mTrip.getRouteId() == 104L) {
 			if (Arrays.asList( //
 					"Bus Terminal", // <>
 					"Main & Ferry" //
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Main & Ferry", mTrip.getHeadsignId());
+				return true;
+			}
+			if (Arrays.asList( //
+					"NF Bus Terminal", //
+					"Main & Ferry Hub" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Main & Ferry Hub", mTrip.getHeadsignId());
 				return true;
 			}
 		} else if (mTrip.getRouteId() == 106L) {
@@ -297,6 +320,13 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 					"Main & Ferry" //
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Main & Ferry", mTrip.getHeadsignId());
+				return true;
+			}
+			if (Arrays.asList( //
+					"Gunning & Willloughby", //
+					"Main & Ferry Hub" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Main & Ferry Hub", mTrip.getHeadsignId());
 				return true;
 			}
 			if (Arrays.asList( //
@@ -317,9 +347,16 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		} else if (mTrip.getRouteId() == 112L) {
 			if (Arrays.asList( //
 					"McLeod Rd.", //
-					"Niagara Sqaure" //
+					"Niagara Sq" //
 			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Niagara Sqaure", mTrip.getHeadsignId());
+				mTrip.setHeadsignString("Niagara Sq", mTrip.getHeadsignId());
+				return true;
+			}
+			if (Arrays.asList( //
+					"Gunning & Willloughby", //
+					"Niagara Sq A" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Niagara Sq A", mTrip.getHeadsignId());
 				return true;
 			}
 		} else if (mTrip.getRouteId() == 113L) {
@@ -328,6 +365,22 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 					"Niagara Squar" //
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Niagara Squar", mTrip.getHeadsignId());
+				return true;
+			}
+		} else if (mTrip.getRouteId() == 203L) {
+			if (Arrays.asList( //
+					"NF Bus Terminal", //
+					"Main & Ferry Hub" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Main & Ferry Hub", mTrip.getHeadsignId());
+				return true;
+			}
+		} else if (mTrip.getRouteId() == 204L) {
+			if (Arrays.asList( //
+					"NF Bus Terminal", //
+					"Main & Ferry Hub" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Main & Ferry Hub", mTrip.getHeadsignId());
 				return true;
 			}
 		} else if (mTrip.getRouteId() == 206L) {
@@ -343,6 +396,20 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 					"Main & Ferry" // <>
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Main & Ferry", mTrip.getHeadsignId());
+				return true;
+			}
+			if (Arrays.asList( //
+					"W Corner", //
+					"Portage Rd & Front St(Tims)" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Portage Rd & Front St(Tims)", mTrip.getHeadsignId());
+				return true;
+			}
+			if (Arrays.asList( //
+					"NF Bus Terminal", //
+					"Main & Ferry Hub" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Main & Ferry Hub", mTrip.getHeadsignId());
 				return true;
 			}
 		}
