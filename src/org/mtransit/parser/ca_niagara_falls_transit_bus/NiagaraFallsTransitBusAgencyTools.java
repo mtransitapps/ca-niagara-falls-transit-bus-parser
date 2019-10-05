@@ -246,7 +246,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		return super.splitTripStop(mRoute, gTrip, gTripStop, splitTrips, routeGTFS);
 	}
 
-	public static final Pattern STARTS_WITH_NF_A00_ = Pattern.compile("((^){1}(nf\\_[A-Z]{1}[\\d]{2}(\\_)?([A-Z]{3}(stop))?(stop|sto)?))",
+	public static final Pattern STARTS_WITH_NF_A00_ = Pattern.compile("((^){1}((nf\\_[A-Z]{1}[\\d]{2}(\\_)?)+([A-Z]{3}(stop))?(stop|sto)?))",
 			Pattern.CASE_INSENSITIVE);
 
 	@Override
@@ -279,7 +279,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		tripHeadsign = STARTS_WITH_RLN_DASH.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
 		tripHeadsign = STARTS_WITH_RLN_SLASH.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
 		tripHeadsign = SQUARE_.matcher(tripHeadsign).replaceAll(SQUARE_REPLACEMENT);
-		tripHeadsign = CleanUtils.keepToAndRevoveVia(tripHeadsign);
+		tripHeadsign = CleanUtils.keepToAndRemoveVia(tripHeadsign);
 		tripHeadsign = AND_NO_SPACE.matcher(tripHeadsign).replaceAll(AND_NO_SPACE_REPLACEMENT);
 		tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
 		tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign); // 1st
@@ -460,7 +460,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 			} else if (stopCode.equals("Temp")) {
 				return 6_200_000;
 			} else {
-				System.out.printf("\nStop doesn't have an ID! %s\n", gStop);
+				System.out.printf("\nStop doesn't have an ID! %s (stopCode:%s)\n", gStop, stopCode);
 				System.exit(-1);
 				return -1;
 			}
@@ -480,7 +480,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		} else if (stopCodeLC.endsWith("temp10")) {
 			stopId = 6_100_000;
 		} else {
-			System.out.printf("\nStop doesn't have an ID (ends with)! %s\n", gStop);
+			System.out.printf("\nStop doesn't have an ID (ends with)! %s (stopCode:%s)\n", gStop, stopCode);
 			System.exit(-1);
 			return -1;
 		}
