@@ -247,7 +247,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		return super.splitTripStop(mRoute, gTrip, gTripStop, splitTrips, routeGTFS);
 	}
 
-	public static final Pattern STARTS_WITH_NF_A00_ = Pattern.compile("((^){1}((nf\\_[A-Z]{1,3}[\\d]{2,4}(\\_)?)+([A-Z]{3}(stop))?(stop|sto)?))",
+	public static final Pattern STARTS_WITH_NF_A00_ = Pattern.compile("((^){1}(((nf|nft)\\_[A-Z]{1,3}[\\d]{2,4}(\\_)?)+([A-Z]{3}(stop))?(stop|sto)?))",
 			Pattern.CASE_INSENSITIVE);
 
 	@Override
