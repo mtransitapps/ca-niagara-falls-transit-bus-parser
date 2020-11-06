@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.mtransit.parser.CleanUtils;
 import org.mtransit.parser.DefaultAgencyTools;
+import org.mtransit.parser.MTLog;
 import org.mtransit.parser.Pair;
 import org.mtransit.parser.SplitUtils;
 import org.mtransit.parser.SplitUtils.RouteTripSpec;
@@ -47,11 +48,11 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public void start(String[] args) {
-		System.out.printf("\nGenerating Niagara Falls Transit bus data...");
+		MTLog.log("Generating Niagara Falls Transit bus data...");
 		long start = System.currentTimeMillis();
 		this.serviceIds = extractUsefulServiceIds(args, this, true);
 		super.start(args);
-		System.out.printf("\nGenerating Niagara Falls Transit bus data... DONE in %s.\n", Utils.getPrettyDuration(System.currentTimeMillis() - start));
+		MTLog.log("Generating Niagara Falls Transit bus data... DONE in %s.", Utils.getPrettyDuration(System.currentTimeMillis() - start));
 	}
 
 	@Override
@@ -81,17 +82,27 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 	public boolean excludeRoute(GRoute gRoute) {
 		if (gRoute.getRouteShortName().equals("22") //
 				|| gRoute.getRouteLongName().toLowerCase(Locale.ENGLISH).contains("erie")) {
-			return true;
+			return true; // exclude
 		}
 		if (gRoute.getRouteShortName().contains("WEGO") //
 				|| gRoute.getRouteLongName().contains("WEGO")) {
-			return true;
+			return true; // exclude
 		}
 		if (gRoute.getRouteLongName().equals("604 - Orange - NOTL")) {
-			return true;
+			return true; // exclude
 		}
-		if (!gRoute.getAgencyId().contains(NIAGARA_FALLS_TRANSIT)) {
-			return true;
+		if (!gRoute.getAgencyId().contains(NIAGARA_FALLS_TRANSIT)
+			&& !gRoute.getAgencyId().contains("AllNRT_")) {
+			return true; // exclude
+		}
+		if (gRoute.getAgencyId().contains("AllNRT_")) {
+			if (!Utils.isDigitsOnly(gRoute.getRouteShortName())) {
+				return true; // exclude
+			}
+			final int rsn = Integer.parseInt(gRoute.getRouteShortName());
+			if (rsn < 100 || rsn > 299) {
+				return true; // exclude
+			}
 		}
 		return super.excludeRoute(gRoute);
 	}
@@ -159,9 +170,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 			case 214: return "B30E8E";
 			// @formatter:on
 			}
-			System.out.printf("\nUnexpected route color for %s!\n", gRoute);
-			System.exit(-1);
-			return null;
+			throw new MTLog.Fatal("Unexpected route color for %s!", gRoute);
 		}
 		return super.getRouteColor(gRoute);
 	}
@@ -210,16 +219,14 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 			case 214: return "Town & County Plz";
 			// @formatter:on
 			}
-			System.out.printf("\nUnexpected route long name for %s!\n", gRoute);
-			System.exit(-1);
-			return null;
+			throw new MTLog.Fatal("Unexpected route long name for %s!", gRoute);
 		}
 		return routeLongName;
 	}
 
 	private static HashMap<Long, RouteTripSpec> ALL_ROUTE_TRIPS2;
 	static {
-		HashMap<Long, RouteTripSpec> map2 = new HashMap<Long, RouteTripSpec>();
+		HashMap<Long, RouteTripSpec> map2 = new HashMap<>();
 		ALL_ROUTE_TRIPS2 = map2;
 	}
 
@@ -266,7 +273,6 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 
 	private static final Pattern STARTS_WITH_RSN_ = Pattern.compile("(^[\\d]+( )?)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern STARTS_WITH_RLN_DASH = Pattern.compile("(^[^\\-]+\\-)", Pattern.CASE_INSENSITIVE);
-	private static final Pattern STARTS_WITH_RLN_SLASH = Pattern.compile("(^[^\\/]+\\/)", Pattern.CASE_INSENSITIVE);
 
 	private static final Pattern AND_NO_SPACE = Pattern.compile("(([\\S])(\\&)([\\S]))", Pattern.CASE_INSENSITIVE);
 	private static final String AND_NO_SPACE_REPLACEMENT = "$2" + "&" + "$4";
@@ -276,9 +282,11 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public String cleanTripHeadsign(String tripHeadsign) {
+		if (Utils.isUppercaseOnly(tripHeadsign, true, true)) {
+			tripHeadsign = tripHeadsign.toLowerCase(Locale.ENGLISH);
+		}
 		tripHeadsign = STARTS_WITH_RSN_.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
 		tripHeadsign = STARTS_WITH_RLN_DASH.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
-		tripHeadsign = STARTS_WITH_RLN_SLASH.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
 		tripHeadsign = SQUARE_.matcher(tripHeadsign).replaceAll(SQUARE_REPLACEMENT);
 		tripHeadsign = CleanUtils.keepToAndRemoveVia(tripHeadsign);
 		tripHeadsign = AND_NO_SPACE.matcher(tripHeadsign).replaceAll(AND_NO_SPACE_REPLACEMENT);
@@ -298,6 +306,13 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 					"Main & Ferry Hub" //
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Main & Ferry Hub", mTrip.getHeadsignId());
+				return true;
+			}
+			if (Arrays.asList( //
+					"Morrison / Dorchester", //
+					"Bus Terminal" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Bus Terminal", mTrip.getHeadsignId());
 				return true;
 			}
 		} else if (mTrip.getRouteId() == 104L) {
@@ -360,12 +375,26 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 				mTrip.setHeadsignString("Niagara Sq A", mTrip.getHeadsignId());
 				return true;
 			}
+			if (Arrays.asList( //
+					"Chippawa", // <>
+					"Canadian Dr Hub" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Canadian Dr Hub", mTrip.getHeadsignId());
+				return true;
+			}
 		} else if (mTrip.getRouteId() == 113L) {
 			if (Arrays.asList( //
 					"Brown Rd. Loop", //
 					"Niagara Squar" //
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Niagara Squar", mTrip.getHeadsignId());
+				return true;
+			}
+			if (Arrays.asList( //
+					"Brown Rd Loop", //
+					"Canadian Dr Hub" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Canadian Dr Hub", mTrip.getHeadsignId());
 				return true;
 			}
 		} else if (mTrip.getRouteId() == 203L) {
@@ -376,6 +405,13 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 				mTrip.setHeadsignString("Main & Ferry Hub", mTrip.getHeadsignId());
 				return true;
 			}
+			if (Arrays.asList( //
+					"Main & Ferry -> Terminal", //
+					"Main & Ferry" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Main & Ferry", mTrip.getHeadsignId());
+				return true;
+			}
 		} else if (mTrip.getRouteId() == 204L) {
 			if (Arrays.asList( //
 					"NF Bus Terminal", //
@@ -384,9 +420,23 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 				mTrip.setHeadsignString("Main & Ferry Hub", mTrip.getHeadsignId());
 				return true;
 			}
+			if (Arrays.asList( //
+					"Bus Terminal", //
+					"Main & Ferry" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Main & Ferry", mTrip.getHeadsignId());
+				return true;
+			}
 		} else if (mTrip.getRouteId() == 206L) {
 			if (Arrays.asList( //
 					"Main & Ferry", // <> #204
+					"Chippawa" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Chippawa", mTrip.getHeadsignId());
+				return true;
+			}
+			if (Arrays.asList( //
+					"Bus Terminal", //
 					"Chippawa" //
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Chippawa", mTrip.getHeadsignId());
@@ -414,9 +464,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 				return true;
 			}
 		}
-		System.out.printf("\nUnexpected trips to merge %s & %s!\n", mTrip, mTripToMerge);
-		System.exit(-1);
-		return false;
+		throw new MTLog.Fatal("Unexpected trips to merge %s & %s!", mTrip, mTripToMerge);
 	}
 
 	@Override
@@ -462,9 +510,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 			} else if (stopCode.equals("Temp")) {
 				return 6_200_000;
 			} else {
-				System.out.printf("\nStop doesn't have an ID! %s (stopCode:%s)\n", gStop, stopCode);
-				System.exit(-1);
-				return -1;
+				throw new MTLog.Fatal("Stop doesn't have an ID! %s (stopCode:%s)", gStop, stopCode);
 			}
 		}
 		int stopId;
@@ -482,9 +528,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		} else if (stopCodeLC.endsWith("temp10")) {
 			stopId = 6_100_000;
 		} else {
-			System.out.printf("\nStop doesn't have an ID (ends with)! %s (stopCode:%s)\n", gStop, stopCode);
-			System.exit(-1);
-			return -1;
+			throw new MTLog.Fatal("Stop doesn't have an ID (ends with)! %s (stopCode:%s)", gStop, stopCode);
 		}
 		return stopId + digits;
 	}
