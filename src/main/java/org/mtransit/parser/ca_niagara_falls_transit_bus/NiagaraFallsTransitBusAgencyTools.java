@@ -224,7 +224,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		return routeLongName;
 	}
 
-	private static HashMap<Long, RouteTripSpec> ALL_ROUTE_TRIPS2;
+	private static final HashMap<Long, RouteTripSpec> ALL_ROUTE_TRIPS2;
 	static {
 		HashMap<Long, RouteTripSpec> map2 = new HashMap<>();
 		ALL_ROUTE_TRIPS2 = map2;
@@ -254,7 +254,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		return super.splitTripStop(mRoute, gTrip, gTripStop, splitTrips, routeGTFS);
 	}
 
-	public static final Pattern STARTS_WITH_NF_A00_ = Pattern.compile("((^){1}(((nf|nft)\\_[A-Z]{1,3}[\\d]{2,4}(\\_)?)+([A-Z]{3}(stop))?(stop|sto)?))",
+	public static final Pattern STARTS_WITH_NF_A00_ = Pattern.compile("((^)(((nf|nft)\\_[a-z]{1,3}[\\d]{2,4}(\\_)?)+([a-z]{3}(stop))?(stop|sto)?))",
 			Pattern.CASE_INSENSITIVE);
 
 	@Override
@@ -268,7 +268,10 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.getId())) {
 			return; // split
 		}
-		mTrip.setHeadsignString(cleanTripHeadsign(gTrip.getTripHeadsign()), gTrip.getDirectionId());
+		mTrip.setHeadsignString(
+			cleanTripHeadsign(gTrip.getTripHeadsignOrDefault()),
+			gTrip.getDirectionIdOrDefault()
+		);
 	}
 
 	private static final Pattern STARTS_WITH_RSN_ = Pattern.compile("(^[\\d]+( )?)", Pattern.CASE_INSENSITIVE);
@@ -277,7 +280,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 	private static final Pattern AND_NO_SPACE = Pattern.compile("(([\\S])(\\&)([\\S]))", Pattern.CASE_INSENSITIVE);
 	private static final String AND_NO_SPACE_REPLACEMENT = "$2" + "&" + "$4";
 
-	private static final Pattern SQUARE_ = Pattern.compile("((^|\\W){1}(sqaure)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern SQUARE_ = Pattern.compile("((^|\\W)(sqaure)(\\W|$))", Pattern.CASE_INSENSITIVE);
 	private static final String SQUARE_REPLACEMENT = "$2" + SQUARE + "$4";
 
 	@Override
@@ -384,7 +387,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 			}
 		} else if (mTrip.getRouteId() == 113L) {
 			if (Arrays.asList( //
-					"Brown Rd. Loop", //
+					"Brown Rd Loop", //
 					"Niagara Squar" //
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Niagara Squar", mTrip.getHeadsignId());
@@ -395,6 +398,13 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 					"Canadian Dr Hub" //
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Canadian Dr Hub", mTrip.getHeadsignId());
+				return true;
+			}
+			if (Arrays.asList( //
+					"Mt Carmel Plz", // <>
+					"Brown Rd Loop" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Brown Rd Loop", mTrip.getHeadsignId());
 				return true;
 			}
 		} else if (mTrip.getRouteId() == 203L) {
