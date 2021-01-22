@@ -305,7 +305,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		List<String> headsignsValues = Arrays.asList(mTrip.getHeadsignValue(), mTripToMerge.getHeadsignValue());
 		if (mTrip.getRouteId() == 102L) {
 			if (Arrays.asList( //
-					"NF Bus Terminal", //
+					"NF Bus Term", //
 					"Main & Ferry Hub" //
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Main & Ferry Hub", mTrip.getHeadsignId());
@@ -313,21 +313,21 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 			}
 			if (Arrays.asList( //
 					"Morrison / Dorchester", //
-					"Bus Terminal" //
+					"Bus Term" //
 			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Bus Terminal", mTrip.getHeadsignId());
+				mTrip.setHeadsignString("Bus Term", mTrip.getHeadsignId());
 				return true;
 			}
 		} else if (mTrip.getRouteId() == 104L) {
 			if (Arrays.asList( //
-					"Bus Terminal", // <>
+					"Bus Term", // <>
 					"Main & Ferry" //
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Main & Ferry", mTrip.getHeadsignId());
 				return true;
 			}
 			if (Arrays.asList( //
-					"NF Bus Terminal", //
+					"NF Bus Term", //
 					"Main & Ferry Hub" //
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Main & Ferry Hub", mTrip.getHeadsignId());
@@ -358,9 +358,9 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		} else if (mTrip.getRouteId() == 108L) {
 			if (Arrays.asList( //
 					"Bus Term", //
-					"Bus Terminal" //
+					"Bus Term" //
 			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Bus Terminal", mTrip.getHeadsignId());
+				mTrip.setHeadsignString("Bus Term", mTrip.getHeadsignId());
 				return true;
 			}
 		} else if (mTrip.getRouteId() == 112L) {
@@ -409,14 +409,14 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 			}
 		} else if (mTrip.getRouteId() == 203L) {
 			if (Arrays.asList( //
-					"NF Bus Terminal", //
+					"NF Bus Term", //
 					"Main & Ferry Hub" //
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Main & Ferry Hub", mTrip.getHeadsignId());
 				return true;
 			}
 			if (Arrays.asList( //
-					"Main & Ferry -> Terminal", //
+					"Main & Ferry -> Term", //
 					"Main & Ferry" //
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Main & Ferry", mTrip.getHeadsignId());
@@ -424,14 +424,14 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 			}
 		} else if (mTrip.getRouteId() == 204L) {
 			if (Arrays.asList( //
-					"NF Bus Terminal", //
+					"NF Bus Term", //
 					"Main & Ferry Hub" //
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Main & Ferry Hub", mTrip.getHeadsignId());
 				return true;
 			}
 			if (Arrays.asList( //
-					"Bus Terminal", //
+					"Bus Term", //
 					"Main & Ferry" //
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Main & Ferry", mTrip.getHeadsignId());
@@ -446,14 +446,14 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 				return true;
 			}
 			if (Arrays.asList( //
-					"Bus Terminal", //
+					"Bus Term", //
 					"Chippawa" //
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Chippawa", mTrip.getHeadsignId());
 				return true;
 			}
 			if (Arrays.asList( //
-					"Bus Terminal", //
+					"Bus Term", //
 					"Main & Ferry" // <>
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Main & Ferry", mTrip.getHeadsignId());
@@ -467,7 +467,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 				return true;
 			}
 			if (Arrays.asList( //
-					"NF Bus Terminal", //
+					"NF Bus Term", //
 					"Main & Ferry Hub" //
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Main & Ferry Hub", mTrip.getHeadsignId());
