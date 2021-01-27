@@ -17,9 +17,7 @@ import org.mtransit.parser.mt.data.MAgency;
 import org.mtransit.parser.mt.data.MRoute;
 import org.mtransit.parser.mt.data.MTrip;
 
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -247,6 +245,11 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		);
 	}
 
+	@Override
+	public boolean directionFinderEnabled() {
+		return true;
+	}
+
 	private static final Pattern STARTS_WITH_RSN_ = Pattern.compile("(^[\\d]+( )?)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern STARTS_WITH_RLN_DASH = Pattern.compile("(^[^\\-]+-)", Pattern.CASE_INSENSITIVE);
 
@@ -256,10 +259,14 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 	private static final Pattern SQUARE_ = Pattern.compile("((^|\\W)(sqaure)(\\W|$))", Pattern.CASE_INSENSITIVE);
 	private static final String SQUARE_REPLACEMENT = "$2" + SQUARE + "$4";
 
+	private static final Pattern ENDS_WITH_ARROW_TERM_ = Pattern.compile("(.* -> terminal$)", Pattern.CASE_INSENSITIVE);
+	private static final String ENDS_WITH_ARROW_TERM_REPLACEMENT = "Bus Terminal";
+
 	@NotNull
 	@Override
 	public String cleanTripHeadsign(@NotNull String tripHeadsign) {
 		tripHeadsign = AND_NO_SPACE.matcher(tripHeadsign).replaceAll(AND_NO_SPACE_REPLACEMENT);
+		tripHeadsign = ENDS_WITH_ARROW_TERM_.matcher(tripHeadsign).replaceAll(ENDS_WITH_ARROW_TERM_REPLACEMENT);
 		tripHeadsign = CleanUtils.toLowerCaseUpperCaseWords(Locale.ENGLISH, tripHeadsign);
 		tripHeadsign = STARTS_WITH_RSN_.matcher(tripHeadsign).replaceAll(EMPTY);
 		tripHeadsign = STARTS_WITH_RLN_DASH.matcher(tripHeadsign).replaceAll(EMPTY);
@@ -275,178 +282,6 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public boolean mergeHeadsign(@NotNull MTrip mTrip, @NotNull MTrip mTripToMerge) {
-		List<String> headsignsValues = Arrays.asList(mTrip.getHeadsignValue(), mTripToMerge.getHeadsignValue());
-		if (mTrip.getRouteId() == 102L) {
-			if (Arrays.asList( //
-					"NF Bus Term", //
-					"Main & Ferry Hub" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Main & Ferry Hub", mTrip.getHeadsignId());
-				return true;
-			}
-			if (Arrays.asList( //
-					"Morrison / Dorchester", //
-					"Bus Term" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Bus Term", mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 104L) {
-			if (Arrays.asList( //
-					"Bus Term", // <>
-					"Main & Ferry" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Main & Ferry", mTrip.getHeadsignId());
-				return true;
-			}
-			if (Arrays.asList( //
-					"NF Bus Term", //
-					"Main & Ferry Hub" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Main & Ferry Hub", mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 106L) {
-			if (Arrays.asList( //
-					"Inb1", //
-					"Main & Ferry" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Main & Ferry", mTrip.getHeadsignId());
-				return true;
-			}
-			if (Arrays.asList( //
-					"Gunning & Willloughby", //
-					"Main & Ferry Hub" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Main & Ferry Hub", mTrip.getHeadsignId());
-				return true;
-			}
-			if (Arrays.asList( //
-					"Aillanthus Ave", //
-					"Main & Ferr" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Main & Ferr", mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 108L) {
-			if (Arrays.asList( //
-					"Bus Term", //
-					"Bus Term" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Bus Term", mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 112L) {
-			if (Arrays.asList( //
-					"McLeod Rd.", //
-					"Niagara Sq" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Niagara Sq", mTrip.getHeadsignId());
-				return true;
-			}
-			if (Arrays.asList( //
-					"Gunning & Willloughby", //
-					"Niagara Sq A" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Niagara Sq A", mTrip.getHeadsignId());
-				return true;
-			}
-			if (Arrays.asList( //
-					"Chippawa", // <>
-					"Canadian Dr Hub" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Canadian Dr Hub", mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 113L) {
-			if (Arrays.asList( //
-					"Brown Rd Loop", //
-					"Niagara Squar" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Niagara Squar", mTrip.getHeadsignId());
-				return true;
-			}
-			if (Arrays.asList( //
-					"Brown Rd Loop", //
-					"Canadian Dr Hub" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Canadian Dr Hub", mTrip.getHeadsignId());
-				return true;
-			}
-			if (Arrays.asList( //
-					"Mt Carmel Plz", // <>
-					"Brown Rd Loop" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Brown Rd Loop", mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 203L) {
-			if (Arrays.asList( //
-					"NF Bus Term", //
-					"Main & Ferry Hub" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Main & Ferry Hub", mTrip.getHeadsignId());
-				return true;
-			}
-			if (Arrays.asList( //
-					"Main & Ferry -> Term", //
-					"Main & Ferry" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Main & Ferry", mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 204L) {
-			if (Arrays.asList( //
-					"NF Bus Term", //
-					"Main & Ferry Hub" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Main & Ferry Hub", mTrip.getHeadsignId());
-				return true;
-			}
-			if (Arrays.asList( //
-					"Bus Term", //
-					"Main & Ferry" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Main & Ferry", mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 206L) {
-			if (Arrays.asList( //
-					"Main & Ferry", // <> #204
-					"Chippawa" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Chippawa", mTrip.getHeadsignId());
-				return true;
-			}
-			if (Arrays.asList( //
-					"Bus Term", //
-					"Chippawa" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Chippawa", mTrip.getHeadsignId());
-				return true;
-			}
-			if (Arrays.asList( //
-					"Bus Term", //
-					"Main & Ferry" // <>
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Main & Ferry", mTrip.getHeadsignId());
-				return true;
-			}
-			if (Arrays.asList( //
-					"W Corner", //
-					"Portage Rd & Front St(Tims)" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Portage Rd & Front St(Tims)", mTrip.getHeadsignId());
-				return true;
-			}
-			if (Arrays.asList( //
-					"NF Bus Term", //
-					"Main & Ferry Hub" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Main & Ferry Hub", mTrip.getHeadsignId());
-				return true;
-			}
-		}
 		throw new MTLog.Fatal("Unexpected trips to merge %s & %s!", mTrip, mTripToMerge);
 	}
 
