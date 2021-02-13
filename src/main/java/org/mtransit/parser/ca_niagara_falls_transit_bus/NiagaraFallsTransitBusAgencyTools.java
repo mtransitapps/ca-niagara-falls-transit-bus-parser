@@ -178,7 +178,8 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 	private static final Pattern STARTS_WITH_ROUTE_RID = Pattern.compile("(^(rte|route) [\\d]+)", Pattern.CASE_INSENSITIVE);
 
 	@NotNull
-	private String cleanRouteLongName(@NotNull String routeLongName) {
+	@Override
+	public String cleanRouteLongName(@NotNull String routeLongName) {
 		routeLongName = STARTS_WITH_ROUTE_RID.matcher(routeLongName).replaceAll(EMPTY);
 		return routeLongName;
 	}
