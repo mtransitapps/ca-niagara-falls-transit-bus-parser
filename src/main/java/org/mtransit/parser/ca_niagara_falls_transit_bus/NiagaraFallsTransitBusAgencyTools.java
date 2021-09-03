@@ -1,115 +1,76 @@
 package org.mtransit.parser.ca_niagara_falls_transit_bus;
 
+import static org.mtransit.parser.StringUtils.EMPTY;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mtransit.parser.CleanUtils;
+import org.mtransit.commons.CharUtils;
+import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.StringUtils;
 import org.mtransit.parser.DefaultAgencyTools;
 import org.mtransit.parser.MTLog;
-import org.mtransit.parser.StringUtils;
-import org.mtransit.parser.Utils;
-import org.mtransit.parser.gtfs.data.GCalendar;
-import org.mtransit.parser.gtfs.data.GCalendarDate;
 import org.mtransit.parser.gtfs.data.GRoute;
-import org.mtransit.parser.gtfs.data.GSpec;
 import org.mtransit.parser.gtfs.data.GStop;
-import org.mtransit.parser.gtfs.data.GTrip;
 import org.mtransit.parser.mt.data.MAgency;
-import org.mtransit.parser.mt.data.MRoute;
-import org.mtransit.parser.mt.data.MTrip;
 
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.mtransit.parser.StringUtils.EMPTY;
-
 // https://niagaraopendata.ca/dataset/niagara-region-transit-gtfs
 // https://maps.niagararegion.ca/googletransit/NiagaraRegionTransit.zip
+// https://niagaraopendata.ca/dataset/1a1b885e-1a86-415d-99aa-6803a2d8f178/resource/52c8cd46-d976-4d57-990f-e8018bcd27cb/download/gtfs.zip
 public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 
-	public static void main(@Nullable String[] args) {
-		if (args == null || args.length == 0) {
-			args = new String[3];
-			args[0] = "input/gtfs.zip";
-			args[1] = "../../mtransitapps/ca-niagara-falls-transit-bus-android/res/raw/";
-			args[2] = ""; // files-prefix
-		}
+	public static void main(@NotNull String[] args) {
 		new NiagaraFallsTransitBusAgencyTools().start(args);
 	}
 
-	@Nullable
-	private HashSet<Integer> serviceIdInts;
-
 	@Override
-	public void start(@NotNull String[] args) {
-		MTLog.log("Generating Niagara Falls Transit bus data...");
-		long start = System.currentTimeMillis();
-		this.serviceIdInts = extractUsefulServiceIdInts(args, this, true);
-		super.start(args);
-		MTLog.log("Generating Niagara Falls Transit bus data... DONE in %s.", Utils.getPrettyDuration(System.currentTimeMillis() - start));
+	public boolean defaultExcludeEnabled() {
+		return true;
 	}
 
+	@NotNull
 	@Override
-	public boolean excludingAll() {
-		return this.serviceIdInts != null && this.serviceIdInts.isEmpty();
-	}
-
-	@Override
-	public boolean excludeCalendar(@NotNull GCalendar gCalendar) {
-		if (this.serviceIdInts != null) {
-			return excludeUselessCalendarInt(gCalendar, this.serviceIdInts);
-		}
-		return super.excludeCalendar(gCalendar);
-	}
-
-	@Override
-	public boolean excludeCalendarDate(@NotNull GCalendarDate gCalendarDates) {
-		if (this.serviceIdInts != null) {
-			return excludeUselessCalendarDateInt(gCalendarDates, this.serviceIdInts);
-		}
-		return super.excludeCalendarDate(gCalendarDates);
+	public String getAgencyName() {
+		return "Niagara Falls Transit";
 	}
 
 	private static final String NIAGARA_FALLS_TRANSIT = "Niagara Falls Transit";
 
 	@Override
 	public boolean excludeRoute(@NotNull GRoute gRoute) {
-		if (gRoute.getRouteShortName().equals("22") //
-				|| gRoute.getRouteLongName().toLowerCase(Locale.ENGLISH).contains("erie")) {
-			return true; // exclude
+		final String rln = gRoute.getRouteLongNameOrDefault();
+		final String rsnS = gRoute.getRouteShortName();
+		if (rsnS.equals("22")
+				|| rln.toLowerCase(Locale.ENGLISH).contains("erie")) {
+			return EXCLUDE;
 		}
-		if (gRoute.getRouteShortName().contains("WEGO") //
-				|| gRoute.getRouteLongName().contains("WEGO")) {
-			return true; // exclude
+		if (rsnS.contains("WEGO") //
+				|| rln.contains("WEGO")) {
+			return EXCLUDE;
 		}
-		if (gRoute.getRouteLongName().equals("604 - Orange - NOTL")) {
-			return true; // exclude
+		if (rln.equals("604 - Orange - NOTL")) {
+			return EXCLUDE;
 		}
 		//noinspection deprecation
-		final String agencyId = gRoute.getAgencyId();
+		final String agencyId = gRoute.getAgencyIdOrDefault();
+		final boolean allAgencies = agencyId.contains("AllNRT_") || agencyId.equals("1");
 		if (!agencyId.contains(NIAGARA_FALLS_TRANSIT)
-				&& !agencyId.contains("AllNRT_")) {
-			return true; // exclude
+				&& !allAgencies) {
+			return EXCLUDE;
 		}
-		if (agencyId.contains("AllNRT_")) {
-			if (!Utils.isDigitsOnly(gRoute.getRouteShortName())) {
-				return true; // exclude
+		if (allAgencies) {
+			if (!CharUtils.isDigitsOnly(rsnS)) {
+				return EXCLUDE;
 			}
-			final int rsn = Integer.parseInt(gRoute.getRouteShortName());
+			final int rsn = Integer.parseInt(rsnS);
 			if (rsn < 100 || rsn > 299) {
-				return true; // exclude
+				return EXCLUDE;
 			}
 		}
 		return super.excludeRoute(gRoute);
-	}
-
-	@Override
-	public boolean excludeTrip(@NotNull GTrip gTrip) {
-		if (this.serviceIdInts != null) {
-			return excludeUselessTripInt(gTrip, this.serviceIdInts);
-		}
-		return super.excludeTrip(gTrip);
 	}
 
 	@NotNull
@@ -190,7 +151,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 	@NotNull
 	@Override
 	public String getRouteLongName(@NotNull GRoute gRoute) {
-		String routeLongName = cleanRouteLongName(gRoute.getRouteLongName());
+		String routeLongName = cleanRouteLongName(gRoute.getRouteLongNameOrDefault());
 		if (StringUtils.isEmpty(routeLongName)) {
 			int rsn = Integer.parseInt(gRoute.getRouteShortName());
 			switch (rsn) {
@@ -239,14 +200,6 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 	}
 
 	@Override
-	public void setTripHeadsign(@NotNull MRoute mRoute, @NotNull MTrip mTrip, @NotNull GTrip gTrip, @NotNull GSpec gtfs) {
-		mTrip.setHeadsignString(
-				cleanTripHeadsign(gTrip.getTripHeadsignOrDefault()),
-				gTrip.getDirectionIdOrDefault()
-		);
-	}
-
-	@Override
 	public boolean directionFinderEnabled() {
 		return true;
 	}
@@ -263,6 +216,8 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 	private static final Pattern ENDS_WITH_ARROW_TERM_ = Pattern.compile("(.* -> terminal$)", Pattern.CASE_INSENSITIVE);
 	private static final String ENDS_WITH_ARROW_TERM_REPLACEMENT = "Bus Terminal";
 
+	private static final Pattern STARTS_WITH_ARROWS_ = Pattern.compile("((^|^.* )(>>) )", Pattern.CASE_INSENSITIVE);
+
 	@NotNull
 	@Override
 	public String cleanTripHeadsign(@NotNull String tripHeadsign) {
@@ -273,17 +228,13 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		tripHeadsign = STARTS_WITH_RLN_DASH.matcher(tripHeadsign).replaceAll(EMPTY);
 		tripHeadsign = SQUARE_.matcher(tripHeadsign).replaceAll(SQUARE_REPLACEMENT);
 		tripHeadsign = CleanUtils.keepToAndRemoveVia(tripHeadsign);
+		tripHeadsign = STARTS_WITH_ARROWS_.matcher(tripHeadsign).replaceAll(EMPTY);
 		tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
 		tripHeadsign = CleanUtils.cleanBounds(tripHeadsign);
 		tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign); // 1st
 		tripHeadsign = CleanUtils.cleanSlashes(tripHeadsign);
 		tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
 		return CleanUtils.cleanLabel(tripHeadsign);
-	}
-
-	@Override
-	public boolean mergeHeadsign(@NotNull MTrip mTrip, @NotNull MTrip mTripToMerge) {
-		throw new MTLog.Fatal("Unexpected trips to merge %s & %s!", mTrip, mTripToMerge);
 	}
 
 	@NotNull
@@ -313,12 +264,12 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 	@Override
 	public int getStopId(@NotNull GStop gStop) {
 		String stopCode = gStop.getStopCode();
-		if (stopCode == null || stopCode.length() == 0 || ZERO_0.equals(stopCode)) {
+		if (stopCode.length() == 0 || ZERO_0.equals(stopCode)) {
 			//noinspection deprecation
 			stopCode = gStop.getStopId();
 		}
 		stopCode = STARTS_WITH_NF_A00_.matcher(stopCode).replaceAll(EMPTY);
-		if (Utils.isDigitsOnly(stopCode)) {
+		if (CharUtils.isDigitsOnly(stopCode)) {
 			return Integer.parseInt(stopCode); // using stop code as stop ID
 		}
 		int digits;
