@@ -1,12 +1,12 @@
 package org.mtransit.parser.ca_niagara_falls_transit_bus;
 
-import static org.mtransit.parser.StringUtils.EMPTY;
+import static org.mtransit.commons.RegexUtils.DIGITS;
+import static org.mtransit.commons.StringUtils.EMPTY;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mtransit.commons.CharUtils;
 import org.mtransit.commons.CleanUtils;
-import org.mtransit.commons.StringUtils;
 import org.mtransit.parser.DefaultAgencyTools;
 import org.mtransit.parser.MTLog;
 import org.mtransit.parser.gtfs.data.GAgency;
@@ -14,6 +14,7 @@ import org.mtransit.parser.gtfs.data.GRoute;
 import org.mtransit.parser.gtfs.data.GStop;
 import org.mtransit.parser.mt.data.MAgency;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,6 +26,12 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 
 	public static void main(@NotNull String[] args) {
 		new NiagaraFallsTransitBusAgencyTools().start(args);
+	}
+
+	@Nullable
+	@Override
+	public List<Locale> getSupportedLanguages() {
+		return LANG_EN;
 	}
 
 	@Override
@@ -93,8 +100,13 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 	}
 
 	@Override
-	public long getRouteId(@NotNull GRoute gRoute) {
-		return Long.parseLong(gRoute.getRouteShortName()); // use route short name as route ID
+	public boolean defaultRouteIdEnabled() {
+		return true;
+	}
+
+	@Override
+	public boolean useRouteShortNameForRouteId() {
+		return true;
 	}
 
 	private static final String AGENCY_COLOR_GREEN = "B2DA18"; // GREEN (from PDF Service Schedule)
@@ -116,42 +128,39 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 	@SuppressWarnings("DuplicateBranchesInSwitch")
 	@Nullable
 	@Override
-	public String getRouteColor(@NotNull GRoute gRoute) {
-		if (StringUtils.isEmpty(gRoute.getRouteColor())) {
-			int rsn = Integer.parseInt(gRoute.getRouteShortName());
-			switch (rsn) {
-			// @formatter:off
-			case 101: return "F57215";
-			case 102: return "2E3192";
-			case 103: return "EC008C";
-			case 104: return "19B5F1";
-			case 105: return "ED1C24";
-			case 106: return "BAA202";
-			case 107: return "A05843";
-			case 108: return "008940";
-			case 109: return "66E530";
-			case 110: return "4372C2";
-			case 111: return "F24D3E";
-			case 112: return "9E50AE";
-			case 113: return "724A36";
-			case 114: return "B30E8E";
-			//
-			case 203: return "EC008C";
-			case 204: return "19B5F1";
-			case 205: return "ED1C24";
-			case 206: return "BAA202";
-			//
-			case 209: return "66C530";
-			case 210: return "4372C2";
-			case 211: return "F24D3E";
-			//
-			case 213: return "724A36";
-			case 214: return "B30E8E";
-			// @formatter:on
-			}
-			throw new MTLog.Fatal("Unexpected route color for %s!", gRoute);
+	public String provideMissingRouteColor(@NotNull GRoute gRoute) {
+		final int rsn = Integer.parseInt(gRoute.getRouteShortName());
+		switch (rsn) {
+		// @formatter:off
+		case 101: return "F57215";
+		case 102: return "2E3192";
+		case 103: return "EC008C";
+		case 104: return "19B5F1";
+		case 105: return "ED1C24";
+		case 106: return "BAA202";
+		case 107: return "A05843";
+		case 108: return "008940";
+		case 109: return "66E530";
+		case 110: return "4372C2";
+		case 111: return "F24D3E";
+		case 112: return "9E50AE";
+		case 113: return "724A36";
+		case 114: return "B30E8E";
+		//
+		case 203: return "EC008C";
+		case 204: return "19B5F1";
+		case 205: return "ED1C24";
+		case 206: return "BAA202";
+		//
+		case 209: return "66C530";
+		case 210: return "4372C2";
+		case 211: return "F24D3E";
+		//
+		case 213: return "724A36";
+		case 214: return "B30E8E";
+		// @formatter:on
 		}
-		return super.getRouteColor(gRoute);
+		throw new MTLog.Fatal("Unexpected route color for %s!", gRoute);
 	}
 
 	private static final Pattern STARTS_WITH_ROUTE_RID = Pattern.compile("(^(rte|route) [\\d]+)", Pattern.CASE_INSENSITIVE);
@@ -165,46 +174,9 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 
 	private static final String SQUARE = "Square";
 
-	@SuppressWarnings("DuplicateBranchesInSwitch")
-	@NotNull
 	@Override
-	public String getRouteLongName(@NotNull GRoute gRoute) {
-		String routeLongName = cleanRouteLongName(gRoute.getRouteLongNameOrDefault());
-		if (StringUtils.isEmpty(routeLongName)) {
-			int rsn = Integer.parseInt(gRoute.getRouteShortName());
-			switch (rsn) {
-			// @formatter:off
-			case 101: return "Dunn St";
-			case 102: return "Morrison & Dorchester"; // Hospital ?
-			case 103: return "Drummond Rd";
-			case 104: return "Victoria Ave";
-			case 105: return "Kalar Rd";
-			case 106: return "Ailanthus Ave";
-			case 107: return "Town & County Plz";
-			case 108: return "Thorold Stone Rd";
-			case 109: return "Thorold Stone Rd";
-			case 110: return "Drummond Rd";
-			case 111: return "Dorchester Rd";
-			case 112: return "McLeod Rd";
-			case 113: return "Montrose Rd";
-			case 114: return "Town & County Plz";
-			//
-			case 203: return "Drummond Rd";
-			case 204: return "Victoria Ave";
-			case 205: return "Kalar Rd";
-			case 206: return "Ailanthus Ave";
-			//
-			case 209: return "Thorold Stone Rd";
-			case 210: return "Hospital";
-			case 211: return "Dorchester Rd";
-			//
-			case 213: return "Montrose Rd ";
-			case 214: return "Town & County Plz";
-			// @formatter:on
-			}
-			throw new MTLog.Fatal("Unexpected route long name for %s!", gRoute);
-		}
-		return routeLongName;
+	public boolean defaultRouteLongNameEnabled() {
+		return true;
 	}
 
 	private static final Pattern STARTS_WITH_NF_A00_ = Pattern.compile("((^)(((nf|nft)_[a-z]{1,3}[\\d]{2,4}(_)?)+([a-z]{3}(stop))?(stop|sto)?))",
@@ -275,8 +247,6 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		return super.getStopCode(gStop);
 	}
 
-	private static final Pattern DIGITS = Pattern.compile("[\\d]+");
-
 	private static final String ZERO_0 = "0";
 
 	@Override
@@ -291,7 +261,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 			return Integer.parseInt(stopCode); // using stop code as stop ID
 		}
 		int digits;
-		Matcher matcher = DIGITS.matcher(stopCode);
+		final Matcher matcher = DIGITS.matcher(stopCode);
 		if (matcher.find()) {
 			digits = Integer.parseInt(matcher.group());
 		} else {
