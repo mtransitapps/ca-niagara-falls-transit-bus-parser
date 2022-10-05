@@ -21,7 +21,6 @@ import java.util.regex.Pattern;
 
 // https://niagaraopendata.ca/dataset/niagara-region-transit-gtfs
 // https://maps.niagararegion.ca/googletransit/NiagaraRegionTransit.zip
-// https://niagaraopendata.ca/dataset/1a1b885e-1a86-415d-99aa-6803a2d8f178/resource/f7dbcaed-f31a-435e-8146-b0efff0b8eb8/download/gtfs.zip
 public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 
 	public static void main(@NotNull String[] args) {
@@ -213,7 +212,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 	public String cleanTripHeadsign(@NotNull String tripHeadsign) {
 		tripHeadsign = AND_NO_SPACE.matcher(tripHeadsign).replaceAll(AND_NO_SPACE_REPLACEMENT);
 		tripHeadsign = ENDS_WITH_ARROW_TERM_.matcher(tripHeadsign).replaceAll(ENDS_WITH_ARROW_TERM_REPLACEMENT);
-		tripHeadsign = CleanUtils.toLowerCaseUpperCaseWords(Locale.ENGLISH, tripHeadsign);
+		tripHeadsign = CleanUtils.toLowerCaseUpperCaseWords(getFirstLanguage(), tripHeadsign, getIgnoreWords());
 		tripHeadsign = STARTS_WITH_RSN_.matcher(tripHeadsign).replaceAll(EMPTY);
 		tripHeadsign = STARTS_WITH_RLN_DASH.matcher(tripHeadsign).replaceAll(EMPTY);
 		tripHeadsign = SQUARE_.matcher(tripHeadsign).replaceAll(SQUARE_REPLACEMENT);
@@ -230,12 +229,21 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 	@NotNull
 	@Override
 	public String cleanStopName(@NotNull String gStopName) {
+		gStopName = CleanUtils.toLowerCaseUpperCaseWords(getFirstLanguage(), gStopName, getIgnoreWords());
+		gStopName = CleanUtils.fixMcXCase(gStopName);
 		gStopName = AND_NO_SPACE.matcher(gStopName).replaceAll(AND_NO_SPACE_REPLACEMENT);
 		gStopName = CleanUtils.CLEAN_AT.matcher(gStopName).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
 		gStopName = CleanUtils.cleanBounds(gStopName);
 		gStopName = CleanUtils.cleanStreetTypes(gStopName); // 1st
 		gStopName = CleanUtils.cleanNumbers(gStopName);
 		return CleanUtils.cleanLabel(gStopName);
+	}
+
+	public String[] getIgnoreWords() {
+		return new String[] {
+			"NF", "CB", "LL",
+			"NW", "SW", "NE", "SE",
+		};
 	}
 
 	@NotNull
