@@ -162,7 +162,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		throw new MTLog.Fatal("Unexpected route color for %s!", gRoute);
 	}
 
-	private static final Pattern STARTS_WITH_ROUTE_RID = Pattern.compile("(^(rte|route) [\\d]+)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern STARTS_WITH_ROUTE_RID = Pattern.compile("(^(rte|route) \\d+)", Pattern.CASE_INSENSITIVE);
 
 	@NotNull
 	@Override
@@ -178,7 +178,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		return true;
 	}
 
-	private static final Pattern STARTS_WITH_NF_A00_ = Pattern.compile("((^)(((nf|nft)_[a-z]{1,3}[\\d]{2,4}(_)?)+([a-z]{3}(stop))?(stop|sto)?))",
+	private static final Pattern STARTS_WITH_NF_A00_ = Pattern.compile("((^)(((nf|nft)_[a-z]{1,3}\\d{2,4}(_)?)+([a-z]{3}(stop))?(stop|sto)?))",
 			Pattern.CASE_INSENSITIVE);
 
 	@NotNull
@@ -193,10 +193,10 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		return true;
 	}
 
-	private static final Pattern STARTS_WITH_RSN_ = Pattern.compile("(^[\\d]+( )?)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern STARTS_WITH_RSN_ = Pattern.compile("(^\\d+( )?)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern STARTS_WITH_RLN_DASH = Pattern.compile("(^[^\\-]+-)", Pattern.CASE_INSENSITIVE);
 
-	private static final Pattern AND_NO_SPACE = Pattern.compile("(([\\S])\\s?([&@])\\s?([\\S]))", Pattern.CASE_INSENSITIVE);
+	private static final Pattern AND_NO_SPACE = Pattern.compile("((\\S)\\s?([&@])\\s?(\\S))", Pattern.CASE_INSENSITIVE);
 	private static final String AND_NO_SPACE_REPLACEMENT = "$2 $3 $4";
 
 	private static final Pattern SQUARE_ = Pattern.compile("((^|\\W)(sqaure)(\\W|$))", Pattern.CASE_INSENSITIVE);
@@ -212,7 +212,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 	public String cleanTripHeadsign(@NotNull String tripHeadsign) {
 		tripHeadsign = AND_NO_SPACE.matcher(tripHeadsign).replaceAll(AND_NO_SPACE_REPLACEMENT);
 		tripHeadsign = ENDS_WITH_ARROW_TERM_.matcher(tripHeadsign).replaceAll(ENDS_WITH_ARROW_TERM_REPLACEMENT);
-		tripHeadsign = CleanUtils.toLowerCaseUpperCaseWords(getFirstLanguage(), tripHeadsign, getIgnoreWords());
+		tripHeadsign = CleanUtils.toLowerCaseUpperCaseWords(getFirstLanguageNN(), tripHeadsign, getIgnoreWords());
 		tripHeadsign = STARTS_WITH_RSN_.matcher(tripHeadsign).replaceAll(EMPTY);
 		tripHeadsign = STARTS_WITH_RLN_DASH.matcher(tripHeadsign).replaceAll(EMPTY);
 		tripHeadsign = SQUARE_.matcher(tripHeadsign).replaceAll(SQUARE_REPLACEMENT);
@@ -229,7 +229,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 	@NotNull
 	@Override
 	public String cleanStopName(@NotNull String gStopName) {
-		gStopName = CleanUtils.toLowerCaseUpperCaseWords(getFirstLanguage(), gStopName, getIgnoreWords());
+		gStopName = CleanUtils.toLowerCaseUpperCaseWords(getFirstLanguageNN(), gStopName, getIgnoreWords());
 		gStopName = CleanUtils.fixMcXCase(gStopName);
 		gStopName = AND_NO_SPACE.matcher(gStopName).replaceAll(AND_NO_SPACE_REPLACEMENT);
 		gStopName = CleanUtils.CLEAN_AT.matcher(gStopName).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
@@ -239,7 +239,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 		return CleanUtils.cleanLabel(gStopName);
 	}
 
-	public String[] getIgnoreWords() {
+	private String[] getIgnoreWords() {
 		return new String[] {
 			"NF", "CB", "LL",
 			"NW", "SW", "NE", "SE",
@@ -260,7 +260,7 @@ public class NiagaraFallsTransitBusAgencyTools extends DefaultAgencyTools {
 	@Override
 	public int getStopId(@NotNull GStop gStop) {
 		String stopCode = gStop.getStopCode();
-		if (stopCode.length() == 0 || ZERO_0.equals(stopCode)) {
+		if (stopCode.isEmpty() || ZERO_0.equals(stopCode)) {
 			//noinspection deprecation
 			stopCode = gStop.getStopId();
 		}
